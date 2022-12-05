@@ -13,7 +13,7 @@
 # First, create a list of required packages
 list.of.packages <- c("tidyverse", "gridExtra", "stargazer", "lubridate", "ggplot2")
 
-# install required packages, if necessary, and load them ----
+# install required packages, if necessary, and load them
 {
   new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
   
@@ -59,6 +59,8 @@ sp_name <-
    select(Code, Current.Name) %>%
    arrange(Code)%>%
    rename(nome = Current.Name)
+
+#-----------------------------------------------------------------------------------------#
  
 # Catture Tumbarino
  
@@ -98,7 +100,24 @@ dat_tumb <- dat_tumb%>%
 dim(dat_tumb)
 str(dat_tumb)
 n_distinct(dat_tumb$euring) # 122 diversi codici euring
- 
+
+#-----------------------------------------------------------------------------------------#
+
+# aggiunta della colonna famiglia
+
+if (condition) {
+  expressions A
+} else if (condition) {
+  expressions B
+} else if (condition) {
+  expressions C
+} else {
+  expressions D
+}
+
+
+#-----------------------------------------------------------------------------------------#
+
 # Numero di catture per codice euring
  
 tumb_sp_count <- 
@@ -111,6 +130,7 @@ tumb_sp_count <-
  
 tumb_sp_count
 
+#-----------------------------------------------------------------------------------------#
  
 # Catture per data
  
@@ -122,6 +142,8 @@ dat_grouped_by_date <-
 str(dat_grouped_by_date)
 head(dat_grouped_by_date)
 tail(dat_grouped_by_date)
+
+#-----------------------------------------------------------------------------------------#
  
 # Subset di primavera ed autunno
   
@@ -132,8 +154,10 @@ sub_prim <- primavera%>%
    group_by(nome)%>%
    count(anno)%>%
    arrange(anno)
+
+#-----------------------------------------------------------------------------------------#
  
-# Subset di prim per specie #
+# Subset di prim per specie 
  
 pop_sp <- tumb_sp_count%>%
    filter(n >= 100)
@@ -142,8 +166,10 @@ pop_sp_name <- pop_sp$nome
    
 pop_prim <- sub_prim%>%
    filter(nome %in% pop_sp_name)
+
+#-----------------------------------------------------------------------------------------#
  
- 
+# Subset per ogni specie  
  
 E_rubecula <- sub_prim%>%
    filter(nome == "Erithacus rubecula")
@@ -199,7 +225,7 @@ capinera <-
  ggplot(pop_prim, aes(x=anno, y=n, color = nome))+
         geom_point(alpha = 0.4)+
         geom_smooth(se = F)
-   #facet_wrap(~ nome)
+       #facet_wrap(~ nome)
 
  
  ggplot(S_borin, aes(x=anno, y=n))+
