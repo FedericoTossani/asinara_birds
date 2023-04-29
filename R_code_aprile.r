@@ -43,6 +43,11 @@ cod_euring <- read.csv("data/euring_sp_codes_2020.csv", stringsAsFactors = F)
 
 str(cod_euring)
 
+#-----------------------------------------------------------------------------------------#
+
+data_23 <- read.csv("data/riepiloghi_asinara_23.csv", stringsAsFactors = F)
+
+
 ##############
 # 3. Dataset #
 ##############
@@ -89,24 +94,34 @@ dat_tumb <- dat_tumb%>%
   mutate(giorno = day(data))%>%
   unite(mese_gg, c(mese, giorno), sep="/", remove = F)
 
-
-#-----------------------------------------------------------------------------------------#
-
-# Numero di catture per codice euring
-
-tumb_sp_count <- 
-  dat_tumb %>%
-  count(euring) %>%
-  left_join(sp_name, by = c("euring" = "Code"))%>%
-  select("nome", everything())%>%
-  arrange(desc(n))
   
 #-----------------------------------------------------------------------------------------#
 
-aprile <- dat_tumb[dat_tumb$mese_gg >= "4/1" & dat_tumb$mese_gg <= "4/30", ]
+# Dati 2023
+
+new_data_23 <- pivot_longer(data_23, cols = 3:32, names_to = "data", values_to = "num")
+
+new_data_23$data <- substr(new_data_23$data, 2, 11)
+
+
+new_data_23 <- new_data_23%>%
+    drop_na(num)%>%
+    arrange(data)%>%
+    rename(nome = Nome.scientifico)
+
+new_data_23[new_data_23 == "Sylvia melanocephala"] <- "Curruca melanocephala"
+new_data_23[new_data_23 == "Sylvia communis"] <- "Curruca communis"
+
+new_data_23$data <- as.Date(new_data_23$data, format = "%d.%m.%Y", sep=".")
+
+top_15_apr23 <- new_data_23%>%
+    filter(nome %in% top_15$nome)
+
+#-----------------------------------------------------------------------------------------#
+
+aprile <- dat_tumb[dat_tumb$mese_gg >= "4/1" & dat_tumb$mese_gg < "5/1", ]
 
 aprile_since14 <- aprile[aprile$anno >= 2014, ]
-
 
 sub_apr <- aprile_since14%>%
    select(anno, mese_gg, nome)%>%
@@ -114,20 +129,29 @@ sub_apr <- aprile_since14%>%
   count(anno)%>%
   arrange(anno)
 
+
+#-----------------------------------------------------------------------------------------#
+
+# Numero di catture per specie
+
+aprile_sp_count <- 
+  aprile_since14 %>%
+  count(nome) %>%
+  arrange(desc(n))
+
 #-----------------------------------------------------------------------------------------#
 
 # Subset delle specie popolari
 
-pop_sp <- tumb_sp_count%>%
+pop_sp <- aprile_sp_count%>%
   filter(n >= 100)
 
 pop_sp_name <- pop_sp$nome
 
-pop_prim <- sub_prim%>%
+pop_aprile <- sub_apr%>%
   filter(nome %in% pop_sp_name)
 
-top_15 <- tumb_sp_count[1:15, ]
-
+top_15 <- aprile_sp_count[1:15, ]
 
 top_15_apr <- aprile_since14%>%
        filter(nome %in% top_15$nome)%>%
@@ -137,42 +161,334 @@ top_15_apr <- aprile_since14%>%
        mutate (anno = year(data))
 
 
-top_15_apr_plot <-
-  ggplot(top_15_apr, aes(x=data, y=n, color = nome))+
-  geom_line(size = 1, )+
-  geom_point(size = 5.5)+
-  geom_text(aes(label = round(n,5.5)), color = "white", size = 2)+
-  #geom_smooth(color = "red", se = F, method = "loess")+
-  labs(title = "15 Specie più comuni",
-       subtitle = "Plot delle catture durante 25 anni di Progetto Piccole Isole",
+theme_asinara <- theme_classic() + theme(panel.grid.major.y = element_line(linewidth = 0.5, color = "grey80"))
+
+# 2014
+
+apr14_plot <- top_15_apr%>%
+  filter(anno == 2014)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  facet_wrap(~nome)+
+  labs(title = "Aprile 2014",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
        x = "Data",
        y = "Catture",
        caption = "Data source: Database catture di Tumbarino")+
   theme_asinara
+ggsave("Aprile_2014.jpeg", plot = apr14_plot, width = 16, height = 7.69, dpi = 300)
+
+apr14_plot2 <- top_15_apr%>%
+  filter(anno == 2014)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  labs(title = "Aprile 2014",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile14.jpeg", plot = apr14_plot2, width = 16, height = 7.69, dpi = 300)
   
-  
+ # 2015
+
+apr15_plot <- top_15_apr%>%
+  filter(anno == 2015)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  facet_wrap(~nome)+
+  labs(title = "Aprile 2015",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile_2015.jpeg", plot = apr15_plot, width = 16, height = 7.69, dpi = 300)
+
+apr15_plot2 <- top_15_apr%>%
+  filter(anno == 2015)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  labs(title = "Aprile 2015",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile15.jpeg", plot = apr15_plot2, width = 16, height = 7.69, dpi = 300)
+
+# 2016
+
+apr16_plot <- top_15_apr%>%
+  filter(anno == 2016)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  facet_wrap(~nome)+
+  labs(title = "Aprile 2016",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile_2016.jpeg", plot = apr16_plot, width = 16, height = 7.69, dpi = 300)
+
+apr16_plot2 <- top_15_apr%>%
+  filter(anno == 2016)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  labs(title = "Aprile 2016",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile16.jpeg", plot = apr16_plot2, width = 16, height = 7.69, dpi = 300)
+
+# 2017
+
+apr17_plot <- top_15_apr%>%
+  filter(anno == 2017)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  facet_wrap(~nome)+
+  labs(title = "Aprile 2017",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile_2017.jpeg", plot = apr17_plot, width = 16, height = 7.69, dpi = 300)
+
+apr17_plot2 <- top_15_apr%>%
+  filter(anno == 2017)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  labs(title = "Aprile 2017",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile17.jpeg", plot = apr17_plot2, width = 16, height = 7.69, dpi = 300)
+
+
+# 2018
+
+apr18_plot <- top_15_apr%>%
+  filter(anno == 2018)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  facet_wrap(~nome)+
+  labs(title = "Aprile 2018",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile_2018.jpeg", plot = apr18_plot, width = 16, height = 7.69, dpi = 300)
+
+apr18_plot2 <- top_15_apr%>%
+  filter(anno == 2018)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  labs(title = "Aprile 2018",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile18.jpeg", plot = apr18_plot2, width = 16, height = 7.69, dpi = 300)
+
+# 2019
+
+apr19_plot <- top_15_apr%>%
+  filter(anno == 2019)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  facet_wrap(~nome)+
+  labs(title = "Aprile 2019",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile_2019.jpeg", plot = apr19_plot, width = 16, height = 7.69, dpi = 300)
+
+apr19_plot2 <- top_15_apr%>%
+  filter(anno == 2019)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  labs(title = "Aprile 2019",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile19.jpeg", plot = apr19_plot2, width = 16, height = 7.69, dpi = 300)
+
+# 2020
+
+apr20_plot <- top_15_apr%>%
+  filter(anno == 2020)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  facet_wrap(~nome)+
+  labs(title = "Aprile 2020",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile_2020.jpeg", plot = apr20_plot, width = 16, height = 7.69, dpi = 300)
+
+apr20_plot2 <- top_15_apr%>%
+  filter(anno == 2020)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  labs(title = "Aprile 2020",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile20.jpeg", plot = apr20_plot2, width = 16, height = 7.69, dpi = 300)
+
+# 2021
+
+apr21_plot <- top_15_apr%>%
+  filter(anno == 2021)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  facet_wrap(~nome)+
+  labs(title = "Aprile 2021",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile_2021.jpeg", plot = apr21_plot, width = 16, height = 7.69, dpi = 300)
+
+apr21_plot2 <- top_15_apr%>%
+  filter(anno == 2021)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  labs(title = "Aprile 2021",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile21.jpeg", plot = apr21_plot2, width = 16, height = 7.69, dpi = 300)
+
+# 2022
+
+apr22_plot <- top_15_apr%>%
+  filter(anno == 2022)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  facet_wrap(~nome)+
+  labs(title = "Aprile 2022",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile_2022.jpeg", plot = apr22_plot, width = 16, height = 7.69, dpi = 300)
+
+apr22_plot2 <- top_15_apr%>%
+  filter(anno == 2022)%>%
+  ggplot(aes(x=data, y=n, fill = nome))+
+  geom_col()+
+  labs(title = "Aprile 2022",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile22.jpeg", plot = apr22_plot2, width = 16, height = 7.69, dpi = 300)
+
+# 2023
+
+apr23_plot <- top_15_apr23%>%
+  ggplot(aes(x=data, y=num, fill = nome))+
+  geom_col()+
+  facet_wrap(~nome)+
+  labs(title = "Aprile 2023",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile_2023.jpeg", plot = apr23_plot, width = 16, height = 7.69, dpi = 300)
+
+
+apr23_plot2 <- top_15_apr23%>%
+  ggplot(aes(x=data, y=num, fill = nome))+
+  geom_col()+
+  labs(title = "Aprile 2023",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile23.jpeg", plot = apr23_plot2, width = 16, height = 7.69, dpi = 300)
+
+#-----------------------------------------------------------------------------------------#
+top_15_apr$data2 <- yday(data)
+
+col <- colorRampPalette(c("red", "blue", "orange", "green", "purple", "light blue", "yellow", "pink", "brown"))
+
+cap_plot <- top_15_apr%>%
+  filter(nome == "Sylvia atricapilla")%>%
+  ggplot(aes(x=data2, y=n, fill = factor(anno)))+
+  geom_col()+
+  facet_wrap(~anno)+
+  scale_fill_manual(values=c("red", "blue", "orange", "green", "purple", "light blue", "yellow", "pink", "brown"))+
+  labs(title = "Sylvia atricapilla",
+       subtitle = "Plot delle catture di Capinera durante il mese di Aprile (dal 2014 al 2022)",
+       x = "Day of the year",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Capinera_aprile.jpeg", plot = cap_plot, width = 16, height = 7.69, dpi = 300)
+
+cap_plot23 <- top_15_apr23%>%
+  filter(nome == "Sylvia atricapilla")%>%
+  ggplot(aes(x=data, y=num, fill = nome))+
+  geom_col()+
+  labs(title = "Sylvia atricapilla",
+       subtitle = "Plot delle catture di Capinera durante il mese di Aprile 2023",
+       x = "Day of the year",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Capinera_aprile23.jpeg", plot = cap_plot23, width = 16, height = 7.69, dpi = 300)
 
 
 
+lui_plot <- top_15_apr%>%
+  filter(nome == "Phylloscopus trochilus")%>%
+  ggplot(aes(x=data2, y=n, fill = factor(anno)))+
+  geom_col()+
+  facet_wrap(~anno)+
+  scale_fill_manual(values=c("red", "blue", "orange", "green", "purple", "light blue", "yellow", "pink", "brown"))+
+  labs(title = "Phylloscopus trochilus",
+       subtitle = "Plot delle catture di Luì grosso durante il mese di Aprile (dal 2014 al 2022)",
+       x = "Day of the year",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Lui_grosso_aprile.jpeg", plot = lui_plot, width = 16, height = 7.69, dpi = 300)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+lui_plot23 <- top_15_apr23%>%
+  filter(nome == "Phylloscopus trochilus")%>%
+  ggplot(aes(x=data, y=num, fill = nome))+
+  geom_col()+
+  labs(title = "Phylloscopus trochilus",
+       subtitle = "Plot delle catture di Luì grosso durante il mese di Aprile 2023",
+       x = "Day of the year",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Lui_grosso_aprile23.jpeg", plot = lui_plot23, width = 16, height = 7.69, dpi = 300)
