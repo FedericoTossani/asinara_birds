@@ -11,7 +11,7 @@
 ###############
 
 # First, create a list of required packages
-list.of.packages <- c("tidyverse", "gridExtra", "stargazer", "lubridate", "ggtheme", "ggpubr", "gganimate", "patchwork", "gifski")
+list.of.packages <- c("tidyverse", "gridExtra", "stargazer", "lubridate", "ggpubr", "gganimate", "patchwork", "gifski")
 
 # install required packages, if necessary, and load them
 {
@@ -25,6 +25,10 @@ list.of.packages <- c("tidyverse", "gridExtra", "stargazer", "lubridate", "ggthe
 ##################
 # 2. Data import #
 ##################
+
+setwd("C:/Users/fedet/OneDrive/Documenti/R/asinara")
+
+#-----------------------------------------------------------------------------------------#
 
 dat_raw <- read.csv("data/ALLCAT.csv", stringsAsFactors = F)
 
@@ -241,6 +245,7 @@ top_15_prim <- primavera%>%
        filter(nome %in% top_15$nome)%>%
        select(data, nome, anno, mese_gg)%>%
        mutate(num = 1)
+
       
 top_15_prim_grouped <- top_15_prim%>%
   group_by(data, nome)%>%
