@@ -121,7 +121,7 @@ top_15_apr23 <- new_data_23%>%
 
 aprile <- dat_tumb[dat_tumb$mese_gg >= "4/1" & dat_tumb$mese_gg < "5/1", ]
 
-aprile_since14 <- aprile[aprile$anno >= 2014, ]
+aprile_since14 <- aprile[aprile$anno >= 2014 & aprile$anno != 2015, ]
 
 sub_apr <- aprile_since14%>%
    select(anno, mese_gg, nome)%>%
@@ -158,7 +158,10 @@ top_15_apr <- aprile_since14%>%
        select(data, nome, anno)%>%
        group_by(data, nome)%>%
        count(nome)%>%
-       mutate (anno = year(data))
+       mutate (anno = year(data),
+               doy = yday(data))
+
+col <- colorRampPalette(c("red", "blue", "orange", "green", "purple", "light blue", "yellow", "pink", "brown"))
 
 
 theme_asinara <- theme_classic() + theme(panel.grid.major.y = element_line(linewidth = 0.5, color = "grey80"))
@@ -434,13 +437,11 @@ apr23_plot2 <- top_15_apr23%>%
 ggsave("Aprile23.jpeg", plot = apr23_plot2, width = 16, height = 7.69, dpi = 300)
 
 #-----------------------------------------------------------------------------------------#
-top_15_apr$data2 <- yday(data)
-
-col <- colorRampPalette(c("red", "blue", "orange", "green", "purple", "light blue", "yellow", "pink", "brown"))
 
 cap_plot <- top_15_apr%>%
   filter(nome == "Sylvia atricapilla")%>%
-  ggplot(aes(x=data2, y=n, fill = factor(anno)))+
+  filter(anno != 2015)%>%
+  ggplot(aes(x=doy, y=n, fill = factor(anno)))+
   geom_col()+
   facet_wrap(~anno)+
   scale_fill_manual(values=c("red", "blue", "orange", "green", "purple", "light blue", "yellow", "pink", "brown"))+
@@ -454,7 +455,7 @@ ggsave("Capinera_aprile.jpeg", plot = cap_plot, width = 16, height = 7.69, dpi =
 
 cap_plot23 <- top_15_apr23%>%
   filter(nome == "Sylvia atricapilla")%>%
-  ggplot(aes(x=data, y=num, fill = nome))+
+  ggplot(aes(x=doy, y=num, fill = nome))+
   geom_col()+
   labs(title = "Sylvia atricapilla",
        subtitle = "Plot delle catture di Capinera durante il mese di Aprile 2023",
@@ -468,7 +469,7 @@ ggsave("Capinera_aprile23.jpeg", plot = cap_plot23, width = 16, height = 7.69, d
 
 lui_plot <- top_15_apr%>%
   filter(nome == "Phylloscopus trochilus")%>%
-  ggplot(aes(x=data2, y=n, fill = factor(anno)))+
+  ggplot(aes(x=doy, y=n, fill = factor(anno)))+
   geom_col()+
   facet_wrap(~anno)+
   scale_fill_manual(values=c("red", "blue", "orange", "green", "purple", "light blue", "yellow", "pink", "brown"))+
@@ -483,7 +484,7 @@ ggsave("Lui_grosso_aprile.jpeg", plot = lui_plot, width = 16, height = 7.69, dpi
 
 lui_plot23 <- top_15_apr23%>%
   filter(nome == "Phylloscopus trochilus")%>%
-  ggplot(aes(x=data, y=num, fill = nome))+
+  ggplot(aes(x=doy, y=num, fill = nome))+
   geom_col()+
   labs(title = "Phylloscopus trochilus",
        subtitle = "Plot delle catture di Luì grosso durante il mese di Aprile 2023",
