@@ -47,6 +47,8 @@ str(cod_euring)
 
 data_23 <- read.csv("data/riepiloghi_asinara_23.csv", stringsAsFactors = F)
 
+data_24 <- read.csv("data/riepiloghi_asinara_24.csv", stringsAsFactors = F)
+
 
 ##############
 # 3. Dataset #
@@ -119,6 +121,27 @@ top_15_apr23 <- new_data_23%>%
 
 #-----------------------------------------------------------------------------------------#
 
+# Dati 2024
+
+new_data_24 <- pivot_longer(data_24, cols = 3:32, names_to = "data", values_to = "num")
+
+new_data_24$data <- substr(new_data_24$data, 2, 11)
+
+
+new_data_24 <- new_data_24%>%
+    drop_na(num)%>%
+    arrange(data)%>%
+    rename(nome = NOME.SCIENTIFICO)
+
+new_data_24[new_data_24 == "Sylvia melanocephala"] <- "Curruca melanocephala"
+new_data_24[new_data_24 == "Sylvia communis"] <- "Curruca communis"
+
+new_data_24$data <- as.Date(new_data_24$data, format = "%d.%m.%Y", sep=".")
+
+top_15_apr24 <- new_data_24%>%
+    filter(nome %in% top_15$nome)
+
+#-----------------------------------------------------------------------------------------#
 aprile <- dat_tumb[dat_tumb$mese_gg >= "4/1" & dat_tumb$mese_gg < "5/1", ]
 
 aprile_since14 <- aprile[aprile$anno >= 2014 & aprile$anno != 2015, ]
@@ -435,6 +458,32 @@ apr23_plot2 <- top_15_apr23%>%
        caption = "Data source: Database catture di Tumbarino")+
   theme_asinara
 ggsave("Aprile23.jpeg", plot = apr23_plot2, width = 16, height = 7.69, dpi = 300)
+
+# 2024
+
+apr24_plot <- top_15_apr24%>%
+  ggplot(aes(x=data, y=num, fill = nome))+
+  geom_col()+
+  facet_wrap(~nome)+
+  labs(title = "Aprile 2024",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile_2024.jpeg", plot = apr24_plot, width = 16, height = 7.69, dpi = 300)
+
+
+apr24_plot2 <- top_15_apr24%>%
+  ggplot(aes(x=data, y=num, fill = nome))+
+  geom_col()+
+  labs(title = "Aprile 2024",
+       subtitle = "Plot delle 15 specie più catturate durante il mese di Aprile",
+       x = "Data",
+       y = "Catture",
+       caption = "Data source: Database catture di Tumbarino")+
+  theme_asinara
+ggsave("Aprile24.jpeg", plot = apr24_plot2, width = 16, height = 7.69, dpi = 300)
 
 #-----------------------------------------------------------------------------------------#
 
